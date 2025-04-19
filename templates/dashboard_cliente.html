@@ -9,7 +9,17 @@
 
     <h3>Nuova Prenotazione</h3>
     <form id="new-appointment-form">
-        <input type="text" id="servizio" placeholder="Servizio" required><br><br>
+        <!-- Selezione del servizio tramite menu a tendina -->
+        <select id="servizio" required>
+            <option value="">-- Seleziona un servizio --</option>
+            <option value="Pulizia del viso">Pulizia del viso</option>
+            <option value="Massaggio rilassante">Massaggio rilassante</option>
+            <option value="Radiofrequenza corpo">Radiofrequenza corpo</option>
+            <option value="Percorso dimagrante 1 mese">Percorso dimagrante 1 mese</option>
+            <option value="Ceretta totale">Ceretta totale</option>
+            <option value="Manicure semipermanente">Manicure semipermanente</option>
+        </select><br><br>
+
         <input type="date" id="data" required><br><br>
         <input type="time" id="ora" required><br><br>
         <textarea id="note" placeholder="Note (facoltative)"></textarea><br><br>
