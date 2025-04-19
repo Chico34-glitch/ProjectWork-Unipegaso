@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Cliente - Natural Belle</title>
+</head>
+<body>
+    <h2>Benvenuto nella Dashboard Cliente</h2>
+
+    <h3>Nuova Prenotazione</h3>
+    <form id="new-appointment-form">
+        <input type="text" id="servizio" placeholder="Servizio" required><br><br>
+        <input type="date" id="data" required><br><br>
+        <input type="time" id="ora" required><br><br>
+        <textarea id="note" placeholder="Note (facoltative)"></textarea><br><br>
+        <button type="submit">Crea Prenotazione</button>
+    </form>
+
+    <h3>Le tue Prenotazioni</h3>
+    <ul id="appointments-list"></ul>
+
+    <p id="message" style="color: green;"></p>
+    <p id="error-message" style="color: red;"></p>
+
+    <script src="/static/dashboard_cliente.js"></script>
+</body>
+</html>
