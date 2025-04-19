@@ -3,23 +3,23 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 import sqlite3
 import bcrypt
 
-# Inizializza Flask
+# Inizializzazione dell'app Flask
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'super-secret-key-naturalbelle'
 jwt = JWTManager(app)
 
-# Connessione database
+# Funzione per ottenere la connessione al database
 def get_db_connection():
     conn = sqlite3.connect('natural_belle.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-# Homepage → Login page
+# Homepage - Pagina di login
 @app.route('/')
 def home():
     return render_template('login.html')
 
-# Registrazione clienti
+# API di registrazione clienti
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -49,7 +49,7 @@ def register():
 
     return jsonify({"message": "Registrazione avvenuta con successo!"}), 201
 
-# Login clienti/dipendenti
+# API di login clienti/dipendenti
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -69,19 +69,7 @@ def login():
     else:
         return jsonify({"error": "Credenziali non valide."}), 401
 
-# Dashboard clienti
-@app.route('/dashboard_cliente')
-@jwt_required()
-def dashboard_cliente():
-    return "Benvenuto nella dashboard cliente!"
-
-# Dashboard dipendenti
-@app.route('/dashboard_dipendente')
-@jwt_required()
-def dashboard_dipendente():
-    return "Benvenuto nella dashboard dipendente!"
-
-# Creazione prenotazione
+# API creazione prenotazione
 @app.route('/appointments', methods=['POST'])
 @jwt_required()
 def create_appointment():
@@ -107,7 +95,7 @@ def create_appointment():
 
     return jsonify({"message": "Prenotazione creata con successo!"}), 201
 
-# Visualizzazione prenotazioni
+# API visualizzazione prenotazioni
 @app.route('/appointments', methods=['GET'])
 @jwt_required()
 def get_appointments():
@@ -125,5 +113,69 @@ def get_appointments():
 
     return jsonify([dict(appointment) for appointment in appointments]), 200
 
+# API modifica prenotazione
+@app.route('/appointments/<int:id>', methods=['PUT'])
+@jwt_required()
+def update_appointment(id):
+    current_user = get_jwt_identity()
+    data = request.get_json()
+    servizio = data.get('servizio')
+    data_appuntamento = data.get('data')
+    ora_appuntamento = data.get('ora')
+    note = data.get('note', '')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica: il cliente può modificare solo le sue prenotazioni
+    if current_user['ruolo'] == 'cliente':
+        cursor.execute('SELECT * FROM appointments WHERE id = ? AND cliente_id = ?', (id, current_user['id']))
+    else:
+        cursor.execute('SELECT * FROM appointments WHERE id = ?', (id,))
+
+    appointment = cursor.fetchone()
+
+    if not appointment:
+        conn.close()
+        return jsonify({"error": "Prenotazione non trovata o non autorizzato."}), 404
+
+    cursor.execute('''
+        UPDATE appointments
+        SET servizio = ?, data = ?, ora = ?, note = ?
+        WHERE id = ?
+    ''', (servizio, data_appuntamento, ora_appuntamento, note, id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Prenotazione modificata con successo!"}), 200
+
+# API cancellazione prenotazione
+@app.route('/appointments/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_appointment(id):
+    current_user = get_jwt_identity()
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica: il cliente può cancellare solo le sue prenotazioni
+    if current_user['ruolo'] == 'cliente':
+        cursor.execute('SELECT * FROM appointments WHERE id = ? AND cliente_id = ?', (id, current_user['id']))
+    else:
+        cursor.execute('SELECT * FROM appointments WHERE id = ?', (id,))
+
+    appointment = cursor.fetchone()
+
+    if not appointment:
+        conn.close()
+        return jsonify({"error": "Prenotazione non trovata o non autorizzato."}), 404
+
+    cursor.execute('DELETE FROM appointments WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Prenotazione cancellata con successo!"}), 200
+
+# Avvio dell'app Flask
 if __name__ == '__main__':
     app.run(debug=True)
