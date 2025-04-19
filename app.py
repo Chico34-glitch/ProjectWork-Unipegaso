@@ -1,55 +1,27 @@
 from flask import Flask, request, jsonify, render_template
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_cors import CORS
 import sqlite3
-import bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# Inizializzazione dell'app Flask
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = 'super-secret-key-naturalbelle'
+CORS(app)
+
+app.config['JWT_SECRET_KEY'] = 'super-secret-key'  # Cambiala in produzione!
 jwt = JWTManager(app)
 
-# Funzione per ottenere la connessione al database
+# Funzione per connettersi al database
 def get_db_connection():
     conn = sqlite3.connect('natural_belle.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-# Homepage - Pagina di login
+# Rotta per la home (login page)
 @app.route('/')
-def home():
+def index():
     return render_template('login.html')
 
-# API di registrazione clienti
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    nome = data.get('nome')
-    email = data.get('email')
-    password = data.get('password')
-
-    if not nome or not email or not password:
-        return jsonify({"error": "Tutti i campi sono obbligatori!"}), 400
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
-    if cursor.fetchone():
-        conn.close()
-        return jsonify({"error": "Email già registrata."}), 400
-
-    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-    cursor.execute('''
-    INSERT INTO users (nome, email, password_hash, ruolo)
-    VALUES (?, ?, ?, 'cliente')
-    ''', (nome, email, password_hash.decode('utf-8')))
-    conn.commit()
-    conn.close()
-
-    return jsonify({"message": "Registrazione avvenuta con successo!"}), 201
-
-# API di login clienti/dipendenti
+# Rotta per login
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -58,124 +30,145 @@ def login():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+    cursor.execute("SELECT * FROM utenti WHERE email = ?", (email,))
     user = cursor.fetchone()
     conn.close()
 
-    if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
-        access_token = create_access_token(identity={'id': user['id'], 'ruolo': user['ruolo'], 'nome': user['nome']})
-        return jsonify(access_token=access_token), 200
+    if user and check_password_hash(user['password'], password):
+        access_token = create_access_token(identity={"id": user['id'], "ruolo": user['ruolo']})
+        return jsonify(access_token=access_token, ruolo=user['ruolo']), 200
     else:
-        return jsonify({"error": "Credenziali non valide."}), 401
+        return jsonify({"error": "Credenziali non valide"}), 401
 
-# API creazione prenotazione
+# Rotta per registrazione clienti
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM utenti WHERE email = ?", (email,))
+    existing_user = cursor.fetchone()
+
+    if existing_user:
+        conn.close()
+        return jsonify({"error": "Utente già esistente"}), 400
+
+    hashed_password = generate_password_hash(password)
+    cursor.execute("INSERT INTO utenti (email, password, ruolo) VALUES (?, ?, ?)", (email, hashed_password, "cliente"))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Registrazione avvenuta con successo!"}), 201
+
+# Rotta per creare una nuova prenotazione (solo clienti)
 @app.route('/appointments', methods=['POST'])
 @jwt_required()
 def create_appointment():
-    current_user = get_jwt_identity()
-
-    if current_user['ruolo'] != 'cliente':
-        return jsonify({"error": "Solo i clienti possono creare prenotazioni."}), 403
+    identity = get_jwt_identity()
+    if identity['ruolo'] != "cliente":
+        return jsonify({"error": "Solo i clienti possono creare prenotazioni"}), 403
 
     data = request.get_json()
     servizio = data.get('servizio')
-    data_appuntamento = data.get('data')
-    ora_appuntamento = data.get('ora')
-    note = data.get('note', '')
+    data_servizio = data.get('data')
+    ora_servizio = data.get('ora')
+    note = data.get('note')
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO appointments (cliente_id, servizio, data, ora, note)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (current_user['id'], servizio, data_appuntamento, ora_appuntamento, note))
+    cursor.execute("INSERT INTO appuntamenti (cliente_id, servizio, data, ora, note) VALUES (?, ?, ?, ?, ?)",
+                   (identity['id'], servizio, data_servizio, ora_servizio, note))
     conn.commit()
     conn.close()
-
     return jsonify({"message": "Prenotazione creata con successo!"}), 201
 
-# API visualizzazione prenotazioni
+# Rotta per vedere tutte le proprie prenotazioni (clienti) o tutte (dipendenti)
 @app.route('/appointments', methods=['GET'])
 @jwt_required()
 def get_appointments():
-    current_user = get_jwt_identity()
+    identity = get_jwt_identity()
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    if current_user['ruolo'] == 'cliente':
-        cursor.execute('SELECT * FROM appointments WHERE cliente_id = ?', (current_user['id'],))
-    else:
-        cursor.execute('SELECT * FROM appointments')
+    if identity['ruolo'] == "cliente":
+        cursor.execute("SELECT * FROM appuntamenti WHERE cliente_id = ?", (identity['id'],))
+    else:  # dipendente
+        cursor.execute("SELECT * FROM appuntamenti")
 
     appointments = cursor.fetchall()
     conn.close()
 
-    return jsonify([dict(appointment) for appointment in appointments]), 200
+    appointments_list = []
+    for app in appointments:
+        appointments_list.append({
+            "id": app['id'],
+            "cliente_id": app['cliente_id'],
+            "servizio": app['servizio'],
+            "data": app['data'],
+            "ora": app['ora'],
+            "note": app['note']
+        })
 
-# API modifica prenotazione
+    return jsonify(appointments_list), 200
+
+# Rotta per modificare una prenotazione
 @app.route('/appointments/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_appointment(id):
-    current_user = get_jwt_identity()
+    identity = get_jwt_identity()
     data = request.get_json()
-    servizio = data.get('servizio')
-    data_appuntamento = data.get('data')
-    ora_appuntamento = data.get('ora')
-    note = data.get('note', '')
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Verifica: il cliente può modificare solo le sue prenotazioni
-    if current_user['ruolo'] == 'cliente':
-        cursor.execute('SELECT * FROM appointments WHERE id = ? AND cliente_id = ?', (id, current_user['id']))
-    else:
-        cursor.execute('SELECT * FROM appointments WHERE id = ?', (id,))
+    # Se è cliente, può modificare solo le proprie prenotazioni
+    if identity['ruolo'] == "cliente":
+        cursor.execute("SELECT * FROM appuntamenti WHERE id = ? AND cliente_id = ?", (id, identity['id']))
+    else:  # dipendente
+        cursor.execute("SELECT * FROM appuntamenti WHERE id = ?", (id,))
 
     appointment = cursor.fetchone()
 
     if not appointment:
         conn.close()
-        return jsonify({"error": "Prenotazione non trovata o non autorizzato."}), 404
+        return jsonify({"error": "Prenotazione non trovata"}), 404
 
-    cursor.execute('''
-        UPDATE appointments
-        SET servizio = ?, data = ?, ora = ?, note = ?
-        WHERE id = ?
-    ''', (servizio, data_appuntamento, ora_appuntamento, note, id))
+    cursor.execute("UPDATE appuntamenti SET servizio = ?, data = ?, ora = ?, note = ? WHERE id = ?",
+                   (data['servizio'], data['data'], data['ora'], data['note'], id))
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "Prenotazione modificata con successo!"}), 200
+    return jsonify({"message": "Prenotazione aggiornata con successo!"}), 200
 
-# API cancellazione prenotazione
+# Rotta per cancellare una prenotazione
 @app.route('/appointments/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_appointment(id):
-    current_user = get_jwt_identity()
+    identity = get_jwt_identity()
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Verifica: il cliente può cancellare solo le sue prenotazioni
-    if current_user['ruolo'] == 'cliente':
-        cursor.execute('SELECT * FROM appointments WHERE id = ? AND cliente_id = ?', (id, current_user['id']))
-    else:
-        cursor.execute('SELECT * FROM appointments WHERE id = ?', (id,))
+    # Se è cliente, può cancellare solo le proprie prenotazioni
+    if identity['ruolo'] == "cliente":
+        cursor.execute("SELECT * FROM appuntamenti WHERE id = ? AND cliente_id = ?", (id, identity['id']))
+    else:  # dipendente
+        cursor.execute("SELECT * FROM appuntamenti WHERE id = ?", (id,))
 
     appointment = cursor.fetchone()
 
     if not appointment:
         conn.close()
-        return jsonify({"error": "Prenotazione non trovata o non autorizzato."}), 404
+        return jsonify({"error": "Prenotazione non trovata"}), 404
 
-    cursor.execute('DELETE FROM appointments WHERE id = ?', (id,))
+    cursor.execute("DELETE FROM appuntamenti WHERE id = ?", (id,))
     conn.commit()
     conn.close()
 
     return jsonify({"message": "Prenotazione cancellata con successo!"}), 200
 
-# Avvio dell'app Flask
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
