@@ -9,7 +9,42 @@
     <h1>Benvenuto nella Dashboard Cliente</h1>
     <p>Qui puoi prenotare i tuoi trattamenti di bellezza!</p>
 
+    <!-- Contenuto che viene caricato solo se il token è valido -->
+    <div id="protected-content"></div>
+
     <!-- Link per tornare al login -->
     <a href="/">Torna al login</a>
+
+    <script>
+        async function checkAuthorization() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Non sei autorizzato. Torna al login.");
+                window.location.href = "/";
+                return;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/dashboard_cliente", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.ok) {
+                    document.getElementById("protected-content").innerText = "Sei loggato correttamente!";
+                } else {
+                    alert("Sessione scaduta o non autorizzato. Torna al login.");
+                    window.location.href = "/";
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Errore di connessione.");
+            }
+        }
+
+        checkAuthorization();
+    </script>
 </body>
 </html>
