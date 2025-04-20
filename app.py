@@ -70,22 +70,14 @@ def login():
     else:
         return jsonify({"error": "Email o password non validi"}), 401
 
-# Dashboard cliente
+# Caricamento dashboard cliente (senza jwt_required)
 @app.route('/dashboard_cliente')
-@jwt_required()
 def dashboard_cliente():
-    current_user = get_jwt_identity()
-    if current_user["ruolo"] != "cliente":
-        return jsonify({"error": "Accesso negato"}), 403
     return render_template('dashboard_cliente.html')
 
-# Dashboard dipendente
+# Caricamento dashboard dipendente (senza jwt_required)
 @app.route('/dashboard_dipendente')
-@jwt_required()
 def dashboard_dipendente():
-    current_user = get_jwt_identity()
-    if current_user["ruolo"] != "dipendente":
-        return jsonify({"error": "Accesso negato"}), 403
     return render_template('dashboard_dipendente.html')
 
 # Avvio applicazione
