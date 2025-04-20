@@ -9,7 +9,6 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(basedir, 'natural_belle.db')
 
-# Funzione per ottenere connessione al database
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -38,7 +37,6 @@ def register():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Controlla se esiste già l'email
     cursor.execute("SELECT * FROM utenti WHERE email = ?", (email,))
     existing_user = cursor.fetchone()
     if existing_user:
