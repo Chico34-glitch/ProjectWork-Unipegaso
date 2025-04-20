@@ -2,17 +2,49 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Dipendente - Natural Belle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Dipendente</title>
 </head>
 <body>
-    <h2>Benvenuto nella Dashboard Dipendente</h2>
+    <h1>Benvenuto nella Dashboard Dipendente</h1>
+    <p>Qui puoi gestire le prenotazioni dei clienti!</p>
 
-    <h3>Lista Prenotazioni Clienti</h3>
-    <ul id="appointments-list"></ul>
+    <!-- Contenuto che viene caricato solo se il token è valido -->
+    <div id="protected-content"></div>
 
-    <p id="message" style="color: green;"></p>
-    <p id="error-message" style="color: red;"></p>
+    <!-- Link per tornare al login -->
+    <a href="/">Torna al login</a>
 
-    <script src="/static/dashboard_dipendente.js"></script>
+    <script>
+        async function checkAuthorization() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Non sei autorizzato. Torna al login.");
+                window.location.href = "/";
+                return;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/dashboard_dipendente", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.ok) {
+                    document.getElementById("protected-content").innerText = "Sei loggato correttamente!";
+                } else {
+                    alert("Sessione scaduta o non autorizzato. Torna al login.");
+                    window.location.href = "/";
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Errore di connessione.");
+            }
+        }
+
+        checkAuthorization();
+    </script>
 </body>
 </html>
