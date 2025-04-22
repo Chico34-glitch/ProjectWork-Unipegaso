@@ -70,7 +70,7 @@ def login():
     else:
         return jsonify({"error": "Email o password non validi"}), 401
 
-# API per creare una prenotazione
+# API prenotazione cliente
 @app.route('/prenotazione', methods=['POST'])
 @jwt_required()
 def prenota_servizio():
@@ -95,12 +95,21 @@ def prenota_servizio():
 
     return jsonify({"message": "Prenotazione registrata correttamente!"}), 201
 
-# Caricamento dashboard cliente (senza jwt_required)
+# Test JSON - Nuova rotta
+@app.route('/test_json', methods=['POST'])
+def test_json():
+    try:
+        data = request.get_json(force=True)
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+
+# Dashboard cliente
 @app.route('/dashboard_cliente')
 def dashboard_cliente():
     return render_template('dashboard_cliente.html')
 
-# Caricamento dashboard dipendente (senza jwt_required)
+# Dashboard dipendente
 @app.route('/dashboard_dipendente')
 def dashboard_dipendente():
     return render_template('dashboard_dipendente.html')
