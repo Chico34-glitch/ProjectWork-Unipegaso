@@ -4,27 +4,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const token = localStorage.getItem("token");
 
-    async function caricaPrenotazioni() {
-        if (!token) {
-            console.error("Token non trovato. Devi loggarti prima.");
-            return;
-        }
+    if (!token) {
+        alert("Token non trovato! Devi effettuare il login.");
+        window.location.href = "/";
+    }
 
+    async function caricaPrenotazioni() {
         try {
             const response = await fetch("http://127.0.0.1:5000/prenotazioni_cliente", {
                 method: "GET",
                 headers: {
-                    "Accept": "application/json",
                     "Authorization": `Bearer ${token}`
                 }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Errore durante il caricamento:", errorData.msg);
-                alert(errorData.msg || "Errore durante il caricamento delle prenotazioni.");
-                return;
-            }
 
             const prenotazioni = await response.json();
             tabellaPrenotazioni.innerHTML = "";
@@ -41,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         } catch (error) {
             console.error(error);
-            alert("Errore di connessione al server.");
+            alert("Errore durante il caricamento delle prenotazioni.");
         }
     }
 
@@ -62,20 +54,19 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch("http://127.0.0.1:5000/prenotazione", {
                 method: "POST",
                 headers: {
-                    "Accept": "application/json",
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({ servizio, data, ora, note })
             });
 
+            const dataResponse = await response.json();
+
             if (response.ok) {
-                const dataResponse = await response.json();
-                alert(dataResponse.message || "Prenotazione avvenuta con successo!");
+                alert(dataResponse.message || "Prenotazione completata!");
                 caricaPrenotazioni();
             } else {
-                const errorData = await response.json();
-                alert(errorData.error || "Errore durante la prenotazione.");
+                alert(dataResponse.error || "Errore durante la prenotazione.");
             }
         } catch (error) {
             console.error(error);
