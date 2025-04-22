@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 
-# Percorso assoluto corretto al database
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(basedir, 'natural_belle.db')
 
@@ -14,20 +13,16 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Inizializzazione Flask
 app = Flask(__name__)
 CORS(app)
 
-# Segreto per i token JWT
 app.config['JWT_SECRET_KEY'] = 'super-secret-key'
 jwt = JWTManager(app)
 
-# Rotta iniziale
 @app.route('/')
 def index():
     return render_template('login.html')
 
-# Rotta di registrazione
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json(force=True)
@@ -50,7 +45,6 @@ def register():
     conn.close()
     return jsonify({"message": "Registrazione completata!"}), 201
 
-# Rotta di login
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json(force=True)
@@ -70,7 +64,6 @@ def login():
     else:
         return jsonify({"error": "Email o password non validi"}), 401
 
-# API prenotazione cliente
 @app.route('/prenotazione', methods=['POST'])
 @jwt_required()
 def prenota_servizio():
@@ -95,25 +88,13 @@ def prenota_servizio():
 
     return jsonify({"message": "Prenotazione registrata correttamente!"}), 201
 
-# Test JSON - Nuova rotta
-@app.route('/test_json', methods=['POST'])
-def test_json():
-    try:
-        data = request.get_json(force=True)
-        return jsonify({"success": True, "data": data})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 400
-
-# Dashboard cliente
 @app.route('/dashboard_cliente')
 def dashboard_cliente():
     return render_template('dashboard_cliente.html')
 
-# Dashboard dipendente
 @app.route('/dashboard_dipendente')
 def dashboard_dipendente():
     return render_template('dashboard_dipendente.html')
 
-# Avvio applicazione
 if __name__ == '__main__':
     app.run(debug=True)
