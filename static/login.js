@@ -20,16 +20,18 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
 
             if (response.ok) {
+                // Salva il token ricevuto
                 localStorage.setItem("token", data.access_token);
                 localStorage.setItem("ruolo", data.ruolo);
 
+                // Reindirizza in base al ruolo
                 if (data.ruolo === "cliente") {
                     window.location.href = "/dashboard_cliente";
                 } else if (data.ruolo === "dipendente") {
                     window.location.href = "/dashboard_dipendente";
                 }
             } else {
-                alert(data.error || "Errore di login.");
+                alert(data.error || "Email o password errati.");
             }
         } catch (error) {
             console.error(error);
