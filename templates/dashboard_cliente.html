@@ -58,7 +58,7 @@
                 }
 
                 try {
-                    const response = await fetch("http://127.0.0.1:5000/test_json", {
+                    const response = await fetch("http://127.0.0.1:5000/prenotazione", {
                         method: "POST",
                         headers: {
                             "Accept": "application/json",
@@ -76,10 +76,10 @@
                     const dataRisposta = await response.json();
 
                     if (response.ok) {
-                        document.getElementById("messaggio").innerText = JSON.stringify(dataRisposta);
+                        document.getElementById("messaggio").innerText = "Prenotazione avvenuta con successo!";
                         prenotazioneForm.reset();
                     } else {
-                        document.getElementById("messaggio").innerText = "Errore nella prenotazione.";
+                        document.getElementById("messaggio").innerText = dataRisposta.error || "Errore nella prenotazione.";
                     }
                 } catch (error) {
                     console.error(error);
