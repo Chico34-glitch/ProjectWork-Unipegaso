@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
 
+    // Login cliente o dipendente
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -20,11 +22,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
 
             if (response.ok) {
-                // Salva il token ricevuto
                 localStorage.setItem("token", data.access_token);
                 localStorage.setItem("ruolo", data.ruolo);
 
-                // Reindirizza in base al ruolo
                 if (data.ruolo === "cliente") {
                     window.location.href = "/dashboard_cliente";
                 } else if (data.ruolo === "dipendente") {
@@ -32,6 +32,36 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             } else {
                 alert(data.error || "Email o password errati.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Errore di connessione al server.");
+        }
+    });
+
+    // Registrazione cliente
+    registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("register-email").value.trim();
+        const password = document.getElementById("register-password").value.trim();
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/register", {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message || "Registrazione completata!");
+            } else {
+                alert(data.error || "Errore durante la registrazione.");
             }
         } catch (error) {
             console.error(error);
