@@ -1,98 +1,40 @@
-from flask import Flask, request, jsonify, render_template
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from flask_cors import CORS
-import sqlite3
-import os
+# (Tutto l'app.py resta uguale fino a...)
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(basedir, 'natural_belle.db')
-
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-app = Flask(__name__)
-CORS(app)
-
-app.config['JWT_SECRET_KEY'] = 'super-secret-key'
-jwt = JWTManager(app)
-
-@app.route('/')
-def index():
-    return render_template('login.html')
-
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json(force=True)
-    email = data.get('email')
-    password = data.get('password')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM utenti WHERE email = ?", (email,))
-    existing_user = cursor.fetchone()
-    if existing_user:
-        conn.close()
-        return jsonify({"error": "Email già registrata"}), 400
-
-    cursor.execute("INSERT INTO utenti (email, password, ruolo) VALUES (?, ?, ?)",
-                   (email, password, "cliente"))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Registrazione completata!"}), 201
-
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json(force=True)
-    email = data.get('email')
-    password = data.get('password')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM utenti WHERE email = ? AND password = ?", (email, password))
-    user = cursor.fetchone()
-    conn.close()
-
-    if user:
-        access_token = create_access_token(identity={"id": user["id"], "ruolo": user["ruolo"]})
-        return jsonify(access_token=access_token, ruolo=user["ruolo"])
-    else:
-        return jsonify({"error": "Email o password non validi"}), 401
-
-@app.route('/prenotazione', methods=['POST'])
+@app.route('/prenotazioni_cliente', methods=['GET'])
 @jwt_required()
-def prenota_servizio():
+def prenotazioni_cliente():
     current_user = get_jwt_identity()
-
-    data = request.get_json(force=True)
-    servizio = data.get('servizio')
-    data_prenotazione = data.get('data')
-    ora = data.get('ora')
-    note = data.get('note')
+    cliente_id = current_user['id']
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute('''
-        INSERT INTO appuntamenti (cliente_id, servizio, data, ora, note)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (current_user['id'], servizio, data_prenotazione, ora, note))
-
-    conn.commit()
+        SELECT servizio, data, ora, note
+        FROM appuntamenti
+        WHERE cliente_id = ?
+        ORDER BY data, ora
+    ''', (cliente_id,))
+    prenotazioni = cursor.fetchall()
     conn.close()
 
-    return jsonify({"message": "Prenotazione registrata correttamente!"}), 201
+    results = [dict(row) for row in prenotazioni]
+    return jsonify(results)
 
-@app.route('/dashboard_cliente')
-def dashboard_cliente():
-    return render_template('dashboard_cliente.html')
+@app.route('/prenotazioni_dipendenti', methods=['GET'])
+@jwt_required()
+def prenotazioni_dipendenti():
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-@app.route('/dashboard_dipendente')
-def dashboard_dipendente():
-    return render_template('dashboard_dipendente.html')
+    cursor.execute('''
+        SELECT utenti.email, appuntamenti.servizio, appuntamenti.data, appuntamenti.ora, appuntamenti.note
+        FROM appuntamenti
+        JOIN utenti ON appuntamenti.cliente_id = utenti.id
+        ORDER BY appuntamenti.data, appuntamenti.ora
+    ''')
+    prenotazioni = cursor.fetchall()
+    conn.close()
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    results = [dict(row) for row in prenotazioni]
+    return jsonify(results)
