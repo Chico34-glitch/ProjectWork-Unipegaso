@@ -29,6 +29,7 @@ def register():
     email = data.get('email')
     password = data.get('password')
 
+    hashed_password = generate_password_hash(password)  # <-- HASH PASSWORD
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -38,9 +39,8 @@ def register():
         conn.close()
         return jsonify({"error": "Email già registrata"}), 400
 
-    hashed_password = generate_password_hash(password)
     cursor.execute("INSERT INTO utenti (email, password, ruolo) VALUES (?, ?, ?)",
-                   (email, hashed_password, "cliente"))
+                   (email, hashed_password, "cliente"))  # <-- SALVA HASH
     conn.commit()
     conn.close()
     return jsonify({"message": "Registrazione completata!"}), 201
@@ -58,7 +58,7 @@ def login():
     user = cursor.fetchone()
     conn.close()
 
-    if user and check_password_hash(user['password'], password):
+    if user and check_password_hash(user['password'], password):  # <-- VERIFICA HASH
         access_token = create_access_token(identity={"id": user["id"], "ruolo": user["ruolo"]})
         return jsonify(access_token=access_token, ruolo=user["ruolo"])
     else:
