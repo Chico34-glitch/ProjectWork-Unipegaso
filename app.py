@@ -30,7 +30,7 @@ def index():
 # Rotta di registrazione
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    data = request.get_json(force=True)
     email = data.get('email')
     password = data.get('password')
 
@@ -76,7 +76,7 @@ def login():
 def prenota_servizio():
     current_user = get_jwt_identity()
 
-    data = request.get_json()
+    data = request.get_json(force=True)
     servizio = data.get('servizio')
     data_prenotazione = data.get('data')
     ora = data.get('ora')
