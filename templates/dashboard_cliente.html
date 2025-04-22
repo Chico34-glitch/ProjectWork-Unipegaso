@@ -46,34 +46,40 @@
             prenotazioneForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
 
-                const servizio = document.getElementById("servizio").value;
-                const data = document.getElementById("data").value;
-                const ora = document.getElementById("ora").value;
-                const note = document.getElementById("note").value;
+                const servizio = document.getElementById("servizio").value.trim();
+                const data = document.getElementById("data").value.trim();
+                const ora = document.getElementById("ora").value.trim();
+                const note = document.getElementById("note").value.trim();
                 const token = localStorage.getItem("token");
 
+                if (!servizio || !data || !ora) {
+                    document.getElementById("messaggio").innerText = "Compila tutti i campi obbligatori!";
+                    return;
+                }
+
                 try {
-                    const response = await fetch("http://127.0.0.1:5000/prenotazione", {
+                    const response = await fetch("http://127.0.0.1:5000/test_json", {
                         method: "POST",
                         headers: {
+                            "Accept": "application/json",
                             "Content-Type": "application/json",
                             "Authorization": "Bearer " + token
                         },
                         body: JSON.stringify({
-                            servizio,
-                            data,
-                            ora,
-                            note
+                            servizio: servizio,
+                            data: data,
+                            ora: ora,
+                            note: note
                         })
                     });
 
                     const dataRisposta = await response.json();
 
                     if (response.ok) {
-                        document.getElementById("messaggio").innerText = "Prenotazione avvenuta con successo!";
+                        document.getElementById("messaggio").innerText = JSON.stringify(dataRisposta);
                         prenotazioneForm.reset();
                     } else {
-                        document.getElementById("messaggio").innerText = dataRisposta.error || "Errore nella prenotazione.";
+                        document.getElementById("messaggio").innerText = "Errore nella prenotazione.";
                     }
                 } catch (error) {
                     console.error(error);
