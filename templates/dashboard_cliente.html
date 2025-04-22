@@ -10,8 +10,17 @@
 
     <h2>Prenota un Servizio</h2>
     <form id="prenotazione-form">
-        <label for="servizio">Servizio:</label><br>
-        <input type="text" id="servizio" required><br><br>
+        <label for="servizio">Seleziona Servizio:</label><br>
+        <select id="servizio" required>
+            <option value="">--Seleziona un servizio--</option>
+            <option value="Trattamento Corpo">Trattamento Corpo</option>
+            <option value="Trattamento Viso">Trattamento Viso</option>
+            <option value="Trattamento Rimodellante">Trattamento Rimodellante</option>
+            <option value="Percorso Dimagrante">Percorso Dimagrante</option>
+            <option value="Massaggio">Massaggio</option>
+            <option value="Epilazione">Epilazione</option>
+            <option value="Estetica di Base">Estetica di Base</option>
+        </select><br><br>
 
         <label for="data">Data (AAAA-MM-GG):</label><br>
         <input type="date" id="data" required><br><br>
@@ -19,7 +28,7 @@
         <label for="ora">Ora (HH:MM):</label><br>
         <input type="time" id="ora" required><br><br>
 
-        <label for="note">Note:</label><br>
+        <label for="note">Note aggiuntive:</label><br>
         <textarea id="note" rows="4" cols="50"></textarea><br><br>
 
         <button type="submit">Prenota</button>
