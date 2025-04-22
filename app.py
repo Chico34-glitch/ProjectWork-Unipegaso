@@ -70,6 +70,31 @@ def login():
     else:
         return jsonify({"error": "Email o password non validi"}), 401
 
+# API per creare una prenotazione
+@app.route('/prenotazione', methods=['POST'])
+@jwt_required()
+def prenota_servizio():
+    current_user = get_jwt_identity()
+
+    data = request.get_json()
+    servizio = data.get('servizio')
+    data_prenotazione = data.get('data')
+    ora = data.get('ora')
+    note = data.get('note')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        INSERT INTO appuntamenti (cliente_id, servizio, data, ora, note)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (current_user['id'], servizio, data_prenotazione, ora, note))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Prenotazione registrata correttamente!"}), 201
+
 # Caricamento dashboard cliente (senza jwt_required)
 @app.route('/dashboard_cliente')
 def dashboard_cliente():
