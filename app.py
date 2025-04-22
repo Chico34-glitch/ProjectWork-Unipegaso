@@ -3,7 +3,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask_cors import CORS
 import sqlite3
 
-app = Flask(__name__)
+app = Flask(__name__)  # <-- CORRETTO: __name__ con due underscore
 CORS(app)
 
 app.config['SECRET_KEY'] = 'super-secret'
@@ -11,18 +11,18 @@ app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
 
 jwt = JWTManager(app)
 
-# Funzione di connessione al database
+# Connessione al DB
 def get_db_connection():
     conn = sqlite3.connect('natural_belle.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-# Home Page (Login e Registrazione)
+# Home
 @app.route('/')
 def home():
     return render_template('login.html')
 
-# Dashboard Cliente
+# Dashboard cliente
 @app.route('/dashboard_cliente')
 @jwt_required()
 def dashboard_cliente():
@@ -31,7 +31,7 @@ def dashboard_cliente():
         return jsonify({"error": "Accesso non autorizzato"}), 403
     return render_template('dashboard_cliente.html')
 
-# Dashboard Dipendente
+# Dashboard dipendente
 @app.route('/dashboard_dipendente')
 @jwt_required()
 def dashboard_dipendente():
@@ -40,7 +40,7 @@ def dashboard_dipendente():
         return jsonify({"error": "Accesso non autorizzato"}), 403
     return render_template('dashboard_dipendente.html')
 
-# Registrazione nuovo cliente
+# Registrazione cliente
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -54,9 +54,7 @@ def register():
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM utenti WHERE email = ?", (email,))
-    existing_user = cursor.fetchone()
-
-    if existing_user:
+    if cursor.fetchone():
         conn.close()
         return jsonify({"error": "Email già registrata"}), 400
 
@@ -66,7 +64,7 @@ def register():
 
     return jsonify({"message": "Registrazione completata!"}), 201
 
-# Login clienti e dipendenti
+# Login clienti/dipendenti
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -75,22 +73,21 @@ def login():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
     cursor.execute("SELECT * FROM utenti WHERE email = ? AND password = ?", (email, password))
     user = cursor.fetchone()
     conn.close()
 
     if user:
-        access_token = create_access_token(identity={
+        token = create_access_token(identity={
             'id': user['id'],
             'email': user['email'],
             'ruolo': user['ruolo']
         })
-        return jsonify(access_token=access_token, ruolo=user['ruolo'])
+        return jsonify(access_token=token, ruolo=user['ruolo'])
     else:
-        return jsonify({"error": "Email o password errate"}), 401
+        return jsonify({"error": "Email o password errati"}), 401
 
-# Prenotazione di un servizio da parte del cliente
+# Prenotazione
 @app.route('/prenotazione', methods=['POST'])
 @jwt_required()
 def prenotazione():
@@ -104,11 +101,10 @@ def prenotazione():
     note = data.get('note')
 
     if not servizio or not data_servizio or not ora:
-        return jsonify({"error": "Tutti i campi tranne le note sono obbligatori."}), 400
+        return jsonify({"error": "Tutti i campi tranne le note sono obbligatori"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
     cursor.execute('''
         INSERT INTO appuntamenti (cliente_id, servizio, data, ora, note)
         VALUES (?, ?, ?, ?, ?)
@@ -118,7 +114,7 @@ def prenotazione():
 
     return jsonify({"message": "Prenotazione avvenuta con successo!"})
 
-# Recupera prenotazioni del cliente loggato
+# Prenotazioni cliente
 @app.route('/prenotazioni_cliente', methods=['GET'])
 @jwt_required()
 def prenotazioni_cliente():
@@ -127,7 +123,6 @@ def prenotazioni_cliente():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
     cursor.execute('''
         SELECT servizio, data, ora, note
         FROM appuntamenti
@@ -137,10 +132,9 @@ def prenotazioni_cliente():
     prenotazioni = cursor.fetchall()
     conn.close()
 
-    results = [dict(row) for row in prenotazioni]
-    return jsonify(results)
+    return jsonify([dict(row) for row in prenotazioni])
 
-# Recupera tutte le prenotazioni per i dipendenti
+# Prenotazioni per dipendenti
 @app.route('/prenotazioni_dipendenti', methods=['GET'])
 @jwt_required()
 def prenotazioni_dipendenti():
@@ -150,7 +144,6 @@ def prenotazioni_dipendenti():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
     cursor.execute('''
         SELECT utenti.email, appuntamenti.servizio, appuntamenti.data, appuntamenti.ora, appuntamenti.note
         FROM appuntamenti
@@ -160,9 +153,8 @@ def prenotazioni_dipendenti():
     prenotazioni = cursor.fetchall()
     conn.close()
 
-    results = [dict(row) for row in prenotazioni]
-    return jsonify(results)
+    return jsonify([dict(row) for row in prenotazioni])
 
-# Avvio applicazione
-if _name_ == '_main_':
+# Avvio server
+if __name__ == '__main__':
     app.run(debug=True)
