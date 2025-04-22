@@ -12,9 +12,9 @@
     <h2>Effettua una prenotazione</h2>
 
     <form id="prenotazione-form">
-        <label for="servizio">Servizio:</label>
+        <label for="servizio">Servizio:</label><br>
         <select id="servizio" required>
-            <option value="">Seleziona un servizio</option>
+            <option value="">-- Seleziona un servizio --</option>
             <option value="Trattamento Viso">Trattamento Viso</option>
             <option value="Trattamento Corpo">Trattamento Corpo</option>
             <option value="Massaggio Relax">Massaggio Relax</option>
@@ -22,11 +22,65 @@
             <option value="Estetica di Base">Estetica di Base</option>
         </select><br><br>
 
-        <label for="data">Data:</label>
+        <label for="data">Data:</label><br>
         <input type="date" id="data" required><br><br>
 
-        <label for="ora">Ora:</label>
+        <label for="ora">Ora:</label><br>
         <input type="time" id="ora" required><br><br>
 
-        <label for="note">Note (opzionale):</label>
-        <textarea id="note
+        <label for="note">Note (opzionale):</label><br>
+        <textarea id="note" rows="4" cols="30"></textarea><br><br>
+
+        <button type="submit">Prenota!</button>
+    </form>
+
+    <div id="messaggio" style="margin-top:20px; font-weight: bold;"></div>
+
+    <br>
+    <a href="/">Torna al login</a>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const prenotazioneForm = document.getElementById("prenotazione-form");
+
+            prenotazioneForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const servizio = document.getElementById("servizio").value;
+                const data = document.getElementById("data").value;
+                const ora = document.getElementById("ora").value;
+                const note = document.getElementById("note").value;
+                const token = localStorage.getItem("token");
+
+                try {
+                    const response = await fetch("http://127.0.0.1:5000/prenotazione", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            servizio,
+                            data,
+                            ora,
+                            note
+                        })
+                    });
+
+                    const dataRisposta = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById("messaggio").innerText = "Prenotazione avvenuta con successo!";
+                        prenotazioneForm.reset();
+                    } else {
+                        document.getElementById("messaggio").innerText = dataRisposta.error || "Errore nella prenotazione.";
+                    }
+                } catch (error) {
+                    console.error(error);
+                    document.getElementById("messaggio").innerText = "Errore di connessione al server.";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
