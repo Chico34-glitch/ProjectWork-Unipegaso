@@ -4,11 +4,10 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(basedir, 'natural_belle.db')
 
-# Connessione e creazione del database
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
-# Creazione tabella utenti
+# Crea tabella utenti
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS utenti (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,7 +17,7 @@ CREATE TABLE IF NOT EXISTS utenti (
 )
 ''')
 
-# Creazione tabella appuntamenti
+# Crea tabella appuntamenti
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS appuntamenti (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
