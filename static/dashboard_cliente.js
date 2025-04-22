@@ -5,6 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const token = localStorage.getItem("token");
 
     async function caricaPrenotazioni() {
+        if (!token) {
+            console.error("Token non trovato. Devi loggarti prima.");
+            return;
+        }
+
         try {
             const response = await fetch("http://127.0.0.1:5000/prenotazioni_cliente", {
                 method: "GET",
@@ -13,6 +18,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Authorization": `Bearer ${token}`
                 }
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Errore durante il caricamento:", errorData.msg);
+                alert(errorData.msg || "Errore durante il caricamento delle prenotazioni.");
+                return;
+            }
 
             const prenotazioni = await response.json();
             tabellaPrenotazioni.innerHTML = "";
@@ -29,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         } catch (error) {
             console.error(error);
-            alert("Errore nel caricamento delle prenotazioni.");
+            alert("Errore di connessione al server.");
         }
     }
 
@@ -57,13 +69,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({ servizio, data, ora, note })
             });
 
-            const dataResponse = await response.json();
-
             if (response.ok) {
+                const dataResponse = await response.json();
                 alert(dataResponse.message || "Prenotazione avvenuta con successo!");
-                caricaPrenotazioni(); // 🔥 Ricarica subito la tabella
+                caricaPrenotazioni();
             } else {
-                alert(dataResponse.error || "Errore durante la prenotazione.");
+                const errorData = await response.json();
+                alert(errorData.error || "Errore durante la prenotazione.");
             }
         } catch (error) {
             console.error(error);
@@ -71,5 +83,5 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    caricaPrenotazioni(); // 🔥 Carica subito all'apertura
+    caricaPrenotazioni();
 });
