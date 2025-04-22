@@ -53,7 +53,7 @@ def register():
 # Rotta di login
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
+    data = request.get_json(force=True)
     email = data.get('email')
     password = data.get('password')
 
