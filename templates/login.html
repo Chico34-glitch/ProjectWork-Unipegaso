@@ -2,36 +2,22 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Natural Belle - Login</title>
+    <title>Login e Registrazione</title>
+    <script src="/static/login.js" defer></script>
 </head>
 <body>
-    <h1>Benvenuto su Natural Belle</h1>
-
-    <h2>Accedi al tuo account</h2>
+    <h1>Login</h1>
     <form id="login-form">
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" required><br><br>
-
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
-
-        <button type="submit">Accedi</button>
+        <input type="email" id="email" placeholder="Email" required><br>
+        <input type="password" id="password" placeholder="Password" required><br>
+        <button type="submit">Login</button>
     </form>
 
-    <hr>
-
-    <h2>Non hai un account? Registrati qui</h2>
+    <h2>Oppure Registrati</h2>
     <form id="register-form">
-        <label for="reg-email">Email:</label><br>
-        <input type="email" id="reg-email" name="reg-email" required><br><br>
-
-        <label for="reg-password">Password:</label><br>
-        <input type="password" id="reg-password" name="reg-password" required><br><br>
-
+        <input type="email" id="register-email" placeholder="Email" required><br>
+        <input type="password" id="register-password" placeholder="Password" required><br>
         <button type="submit">Registrati</button>
     </form>
-
-    <script src="/static/login.js"></script>
 </body>
 </html>
