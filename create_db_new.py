@@ -33,4 +33,4 @@ CREATE TABLE IF NOT EXISTS appuntamenti (
 conn.commit()
 conn.close()
 
-print("Database creato correttamente con tabella utenti e appuntamenti!")
+print("Database creato correttamente!")
