@@ -9,42 +9,24 @@
     <h1>Benvenuto nella Dashboard Cliente</h1>
     <p>Qui puoi prenotare i tuoi trattamenti di bellezza!</p>
 
-    <!-- Contenuto che viene caricato solo se il token è valido -->
-    <div id="protected-content"></div>
+    <h2>Effettua una prenotazione</h2>
 
-    <!-- Link per tornare al login -->
-    <a href="/">Torna al login</a>
+    <form id="prenotazione-form">
+        <label for="servizio">Servizio:</label>
+        <select id="servizio" required>
+            <option value="">Seleziona un servizio</option>
+            <option value="Trattamento Viso">Trattamento Viso</option>
+            <option value="Trattamento Corpo">Trattamento Corpo</option>
+            <option value="Massaggio Relax">Massaggio Relax</option>
+            <option value="Epilazione">Epilazione</option>
+            <option value="Estetica di Base">Estetica di Base</option>
+        </select><br><br>
 
-    <script>
-        async function checkAuthorization() {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                alert("Non sei autorizzato. Torna al login.");
-                window.location.href = "/";
-                return;
-            }
+        <label for="data">Data:</label>
+        <input type="date" id="data" required><br><br>
 
-            try {
-                const response = await fetch("http://127.0.0.1:5000/dashboard_cliente", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": "Bearer " + token
-                    }
-                });
+        <label for="ora">Ora:</label>
+        <input type="time" id="ora" required><br><br>
 
-                if (response.ok) {
-                    document.getElementById("protected-content").innerText = "Sei loggato correttamente!";
-                } else {
-                    alert("Sessione scaduta o non autorizzato. Torna al login.");
-                    window.location.href = "/";
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Errore di connessione.");
-            }
-        }
-
-        checkAuthorization();
-    </script>
-</body>
-</html>
+        <label for="note">Note (opzionale):</label>
+        <textarea id="note
