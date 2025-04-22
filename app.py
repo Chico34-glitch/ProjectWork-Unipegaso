@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 
@@ -29,7 +28,6 @@ def register():
     email = data.get('email')
     password = data.get('password')
 
-    hashed_password = generate_password_hash(password)  # <-- HASH PASSWORD
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -40,7 +38,7 @@ def register():
         return jsonify({"error": "Email già registrata"}), 400
 
     cursor.execute("INSERT INTO utenti (email, password, ruolo) VALUES (?, ?, ?)",
-                   (email, hashed_password, "cliente"))  # <-- SALVA HASH
+                   (email, password, "cliente"))
     conn.commit()
     conn.close()
     return jsonify({"message": "Registrazione completata!"}), 201
@@ -54,11 +52,11 @@ def login():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM utenti WHERE email = ?", (email,))
+    cursor.execute("SELECT * FROM utenti WHERE email = ? AND password = ?", (email, password))
     user = cursor.fetchone()
     conn.close()
 
-    if user and check_password_hash(user['password'], password):  # <-- VERIFICA HASH
+    if user:
         access_token = create_access_token(identity={"id": user["id"], "ruolo": user["ruolo"]})
         return jsonify(access_token=access_token, ruolo=user["ruolo"])
     else:
