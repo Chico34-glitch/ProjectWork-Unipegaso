@@ -1,8 +1,11 @@
 import sqlite3
-from werkzeug.security import generate_password_hash
+import os
 
-# Connessione al nuovo database
-conn = sqlite3.connect('natural_belle.db')
+basedir = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(basedir, 'natural_belle.db')
+
+# Connessione e creazione del database
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 # Creazione tabella utenti
@@ -24,19 +27,11 @@ CREATE TABLE IF NOT EXISTS appuntamenti (
     data TEXT NOT NULL,
     ora TEXT NOT NULL,
     note TEXT,
-    FOREIGN KEY (cliente_id) REFERENCES utenti (id)
+    FOREIGN KEY (cliente_id) REFERENCES utenti(id)
 )
 ''')
-
-# Inserimento dipendente base
-email_dipendente = "mario.rossi@naturalbelle.it"
-password_dipendente = generate_password_hash("password123")
-ruolo_dipendente = "dipendente"
-
-cursor.execute("INSERT INTO utenti (email, password, ruolo) VALUES (?, ?, ?)", 
-               (email_dipendente, password_dipendente, ruolo_dipendente))
 
 conn.commit()
 conn.close()
 
-print("Database creato e dipendente inserito!")
+print("Database creato correttamente con tabella utenti e appuntamenti!")
