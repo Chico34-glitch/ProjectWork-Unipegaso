@@ -11,27 +11,23 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const response = await fetch("http://127.0.0.1:5000/login", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                const token = data.access_token;
-                const ruolo = data.ruolo;
-                localStorage.setItem('token', token);
-                localStorage.setItem('ruolo', ruolo);
+                localStorage.setItem('token', data.access_token);
+                localStorage.setItem('ruolo', data.ruolo);
 
-                if (ruolo === "cliente") {
+                if (data.ruolo === "cliente") {
                     window.location.href = "/dashboard_cliente";
-                } else if (ruolo === "dipendente") {
+                } else {
                     window.location.href = "/dashboard_dipendente";
                 }
             } else {
-                alert(data.error || "Errore durante il login");
+                alert(data.error || "Errore durante il login.");
             }
         } catch (error) {
             console.error(error);
@@ -48,9 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const response = await fetch("http://127.0.0.1:5000/register", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
             });
 
