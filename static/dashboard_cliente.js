@@ -19,14 +19,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             const response = await fetch("http://127.0.0.1:5000/prenotazione", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
-
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token  
+    },
+    body: JSON.stringify(payload)
+});
+            
             const result = await response.json();
 
             if (response.ok) {
