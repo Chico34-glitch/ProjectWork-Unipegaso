@@ -1,7 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
     const prenotazioneForm = document.getElementById("prenotazione-form");
+    const token = localStorage.getItem("token");
 
-    const token = localStorage.getItem('token');
+    if (!token) {
+        alert("Token non trovato! Effettua il login.");
+        window.location.href = "/";
+        return;
+    }
 
     prenotazioneForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -18,24 +23,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    servizio: servizio,
-                    data: data,
-                    ora: ora,
-                    note: note
-                })
+                body: JSON.stringify({ servizio, data, ora, note })
             });
 
-            const dataResponse = await response.json();
+            const result = await response.json();
 
             if (response.ok) {
-                alert(dataResponse.message || "Prenotazione avvenuta con successo!");
+                alert(result.message || "Prenotazione avvenuta con successo!");
             } else {
-                alert(dataResponse.error || "Errore nella prenotazione.");
+                alert(result.error || "Errore nella prenotazione.");
             }
         } catch (error) {
             console.error(error);
-            alert("Errore di connessione al server.");
+            alert("Errore di connessione.");
         }
     });
 });
