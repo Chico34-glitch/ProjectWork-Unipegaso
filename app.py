@@ -24,11 +24,8 @@ def home():
 
 # Dashboard cliente
 @app.route('/dashboard_cliente')
-@jwt_required()
+@app.route('/dashboard_cliente')
 def dashboard_cliente():
-    current_user = get_jwt_identity()
-    if current_user['ruolo'] != 'cliente':
-        return jsonify({"error": "Accesso non autorizzato"}), 403
     return render_template('dashboard_cliente.html')
 
 # Dashboard dipendente
