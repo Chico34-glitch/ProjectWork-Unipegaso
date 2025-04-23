@@ -88,7 +88,7 @@ def prenotazione():
         servizio = data.get('servizio')
         data_servizio = data.get('data')
         ora = data.get('ora')
-        note = data.get('note')
+        note = data.get('note', '')
 
         if not servizio or not data_servizio or not ora:
             return jsonify({"error": "Tutti i campi tranne le note sono obbligatori"}), 400
@@ -105,7 +105,7 @@ def prenotazione():
         return jsonify({"message": "Prenotazione avvenuta con successo!"}), 200
 
     except Exception as e:
-        print("Errore durante la prenotazione:", e)
+        print("ERRORE:", e)
         return jsonify({"error": "Errore interno del server"}), 500
 
 if __name__ == '__main__':
