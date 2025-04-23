@@ -3,49 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard Cliente</title>
-    <script src="/static/dashboard_cliente.js" defer></script>
 </head>
 <body>
-    <h1>Benvenuto nella tua dashboard!</h1>
-
-    <h2>Prenota un Servizio</h2>
+    <h2>Benvenuto nella tua dashboard!</h2>
     <form id="prenotazione-form">
-        <label for="servizio">Seleziona Servizio:</label><br>
+        <label for="servizio">Servizio:</label>
         <select id="servizio" required>
-            <option value="">--Seleziona un servizio--</option>
-            <option value="Trattamento Corpo">Trattamento Corpo</option>
             <option value="Trattamento Viso">Trattamento Viso</option>
-            <option value="Trattamento Rimodellante">Trattamento Rimodellante</option>
-            <option value="Percorso Dimagrante">Percorso Dimagrante</option>
             <option value="Massaggio">Massaggio</option>
             <option value="Epilazione">Epilazione</option>
-            <option value="Estetica di Base">Estetica di Base</option>
-        </select><br><br>
+        </select><br>
 
-        <label for="data">Data (AAAA-MM-GG):</label><br>
-        <input type="date" id="data" required><br><br>
+        <label for="data">Data:</label>
+        <input type="date" id="data" required><br>
 
-        <label for="ora">Ora (HH:MM):</label><br>
-        <input type="time" id="ora" required><br><br>
+        <label for="ora">Ora:</label>
+        <input type="time" id="ora" required><br>
 
-        <label for="note">Note aggiuntive:</label><br>
-        <textarea id="note" rows="4" cols="50"></textarea><br><br>
+        <label for="note">Note:</label>
+        <textarea id="note"></textarea><br>
 
         <button type="submit">Prenota</button>
     </form>
 
-    <h2>Le tue Prenotazioni</h2>
-    <table border="1" id="tabella-prenotazioni">
-        <thead>
-            <tr>
-                <th>Servizio</th>
-                <th>Data</th>
-                <th>Ora</th>
-                <th>Note</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <script src="/static/dashboard_cliente.js"></script>
 </body>
 </html>
