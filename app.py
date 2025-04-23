@@ -130,5 +130,25 @@ def prenotazioni_cliente():
     results = [dict(p) for p in prenotazioni]
     return jsonify(results)
 
+@app.route('/prenotazioni', methods=['GET'])
+@jwt_required()
+def prenotazioni():
+    current_user = json.loads(get_jwt_identity())
+    if current_user['ruolo'] != 'dipendente':
+        return jsonify({"error": "Accesso non autorizzato"}), 403
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT servizio, data, ora, note
+        FROM appuntamenti
+        ORDER BY data, ora
+    ''')
+    prenotazioni = cursor.fetchall()
+    conn.close()
+
+    results = [dict(p) for p in prenotazioni]
+    return jsonify(results)
+
 if __name__ == '__main__':
     app.run(debug=True)
