@@ -2,22 +2,23 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Login e Registrazione</title>
-    <script src="/static/login.js" defer></script>
+    <title>Login / Registrazione</title>
 </head>
 <body>
-    <h1>Login</h1>
-    <form id="login-form">
-        <input type="email" id="email" placeholder="Email" required><br>
-        <input type="password" id="password" placeholder="Password" required><br>
-        <button type="submit">Login</button>
+    <h2>Login</h2>
+    <form id="form-login">
+        <input type="email" id="login-email" placeholder="Email" required><br>
+        <input type="password" id="login-password" placeholder="Password" required><br>
+        <button type="submit">Accedi</button>
     </form>
 
-    <h2>Oppure Registrati</h2>
-    <form id="register-form">
+    <h2>Registrazione</h2>
+    <form id="form-register">
         <input type="email" id="register-email" placeholder="Email" required><br>
         <input type="password" id="register-password" placeholder="Password" required><br>
         <button type="submit">Registrati</button>
     </form>
+
+    <script src="/static/login.js"></script>
 </body>
 </html>
