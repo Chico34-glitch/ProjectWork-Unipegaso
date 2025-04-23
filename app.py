@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 import sqlite3
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -28,7 +29,7 @@ def dashboard_cliente():
 @app.route('/dashboard_dipendente')
 @jwt_required()
 def dashboard_dipendente():
-    current_user = get_jwt_identity()
+    current_user = json.loads(get_jwt_identity())
     if current_user['ruolo'] != 'dipendente':
         return jsonify({"error": "Accesso non autorizzato"}), 403
     return render_template('dashboard_dipendente.html')
@@ -68,11 +69,12 @@ def login():
     conn.close()
 
     if user:
-        token = create_access_token(identity={
+        user_identity = json.dumps({
             'id': user['id'],
             'email': user['email'],
             'ruolo': user['ruolo']
         })
+        token = create_access_token(identity=user_identity)
         return jsonify(access_token=token, ruolo=user['ruolo'])
     else:
         return jsonify({"error": "Email o password errati"}), 401
@@ -80,7 +82,7 @@ def login():
 @app.route('/prenotazione', methods=['POST'])
 @jwt_required()
 def prenotazione():
-    current_user = get_jwt_identity()
+    current_user = json.loads(get_jwt_identity())
     cliente_id = current_user['id']
 
     try:
@@ -107,6 +109,26 @@ def prenotazione():
     except Exception as e:
         print("ERRORE:", e)
         return jsonify({"error": "Errore interno del server"}), 500
+
+@app.route('/prenotazioni_cliente', methods=['GET'])
+@jwt_required()
+def prenotazioni_cliente():
+    current_user = json.loads(get_jwt_identity())
+    cliente_id = current_user['id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT servizio, data, ora, note
+        FROM appuntamenti
+        WHERE cliente_id = ?
+        ORDER BY data, ora
+    ''', (cliente_id,))
+    prenotazioni = cursor.fetchall()
+    conn.close()
+
+    results = [dict(p) for p in prenotazioni]
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True)
