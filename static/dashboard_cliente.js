@@ -16,6 +16,19 @@ document.addEventListener("DOMContentLoaded", function () {
         const ora = document.getElementById("ora").value;
         const note = document.getElementById("note").value;
 
+        // Validazione base
+        if (!servizio || !data || !ora) {
+            alert("Inserisci tutti i campi obbligatori.");
+            return;
+        }
+
+        const payload = {
+            servizio: servizio,
+            data: data,
+            ora: ora,
+            note: note || ""
+        };
+
         try {
             const response = await fetch("http://127.0.0.1:5000/prenotazione", {
                 method: "POST",
@@ -23,19 +36,20 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ servizio, data, ora, note })
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
 
             if (response.ok) {
                 alert(result.message || "Prenotazione avvenuta con successo!");
+                prenotazioneForm.reset();
             } else {
                 alert(result.error || "Errore nella prenotazione.");
             }
         } catch (error) {
-            console.error(error);
-            alert("Errore di connessione.");
+            console.error("Errore:", error);
+            alert("Errore di connessione al server.");
         }
     });
 });
