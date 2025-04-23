@@ -1,37 +1,36 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const tabellaPrenotazioni = document.querySelector("#tabella-prenotazioni-dipendente tbody");
-
     const token = localStorage.getItem("token");
 
-    async function caricaPrenotazioniDipendente() {
+    async function caricaPrenotazioni() {
         try {
-            const response = await fetch("http://127.0.0.1:5000/prenotazioni_dipendenti", {
-                method: "GET",
+            const response = await fetch("http://127.0.0.1:5000/prenotazioni", {
                 headers: {
-                    "Accept": "application/json",
-                    "Authorization": `Bearer ${token}`
+                    "Authorization": "Bearer " + token
                 }
             });
 
-            const prenotazioni = await response.json();
-            tabellaPrenotazioni.innerHTML = "";
+            const lista = document.getElementById("lista-prenotazioni");
+            lista.innerHTML = "";
 
-            prenotazioni.forEach(p => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${p.email}</td>
-                    <td>${p.servizio}</td>
-                    <td>${p.data}</td>
-                    <td>${p.ora}</td>
-                    <td>${p.note || ""}</td>
-                `;
-                tabellaPrenotazioni.appendChild(row);
-            });
-        } catch (error) {
-            console.error(error);
-            alert("Errore nel caricamento delle prenotazioni dipendenti.");
+            if (response.ok) {
+                const dati = await response.json();
+                if (dati.length === 0) {
+                    lista.innerHTML = "<li>Nessuna prenotazione trovata.</li>";
+                    return;
+                }
+
+                dati.forEach(p => {
+                    const voce = document.createElement("li");
+                    voce.textContent = `${p.data} alle ${p.ora} - ${p.servizio} (${p.note})`;
+                    lista.appendChild(voce);
+                });
+            } else {
+                lista.innerHTML = "<li>Errore nel caricamento delle prenotazioni.</li>";
+            }
+        } catch (err) {
+            console.error("Errore nel recupero prenotazioni:", err);
         }
     }
 
-    caricaPrenotazioniDipendente();
+    caricaPrenotazioni();
 });
