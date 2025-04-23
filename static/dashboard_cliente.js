@@ -1,14 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const prenotazioneForm = document.getElementById("prenotazione-form");
+    const form = document.getElementById("prenotazione-form");
     const token = localStorage.getItem("token");
 
-    if (!token) {
-        alert("Token non trovato! Effettua il login.");
-        window.location.href = "/";
-        return;
-    }
-
-    prenotazioneForm.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const servizio = document.getElementById("servizio").value;
@@ -16,18 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const ora = document.getElementById("ora").value;
         const note = document.getElementById("note").value;
 
-        // Validazione base
-        if (!servizio || !data || !ora) {
-            alert("Inserisci tutti i campi obbligatori.");
-            return;
-        }
-
-        const payload = {
-            servizio: servizio,
-            data: data,
-            ora: ora,
-            note: note || ""
-        };
+        const payload = { servizio, data, ora, note };
 
         try {
             const response = await fetch("http://127.0.0.1:5000/prenotazione", {
@@ -43,13 +26,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 alert(result.message || "Prenotazione avvenuta con successo!");
-                prenotazioneForm.reset();
+                form.reset();
             } else {
                 alert(result.error || "Errore nella prenotazione.");
             }
-        } catch (error) {
-            console.error("Errore:", error);
-            alert("Errore di connessione al server.");
+        } catch (err) {
+            console.error("Errore di connessione:", err);
+            alert("Connessione al server non riuscita.");
         }
     });
 });
