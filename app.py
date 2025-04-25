@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, request, jsonify, render_template
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
@@ -27,11 +26,7 @@ def dashboard_cliente():
     return render_template('dashboard_cliente.html')
 
 @app.route('/dashboard_dipendente')
-@jwt_required()
 def dashboard_dipendente():
-    current_user = json.loads(get_jwt_identity())
-    if current_user['ruolo'] != 'dipendente':
-        return jsonify({"error": "Accesso non autorizzato"}), 403
     return render_template('dashboard_dipendente.html')
 
 @app.route('/register', methods=['POST'])
@@ -119,7 +114,7 @@ def prenotazioni_cliente():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT servizio, data, ora, note
+        SELECT id, servizio, data, ora, note
         FROM appuntamenti
         WHERE cliente_id = ?
         ORDER BY data, ora
@@ -140,8 +135,9 @@ def prenotazioni():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT servizio, data, ora, note
+        SELECT appuntamenti.id, servizio, data, ora, note, utenti.email as cliente_email
         FROM appuntamenti
+        JOIN utenti ON appuntamenti.cliente_id = utenti.id
         ORDER BY data, ora
     ''')
     prenotazioni = cursor.fetchall()
@@ -149,6 +145,46 @@ def prenotazioni():
 
     results = [dict(p) for p in prenotazioni]
     return jsonify(results)
+
+@app.route('/modifica_prenotazione/<int:id>', methods=['PUT'])
+@jwt_required()
+def modifica_prenotazione(id):
+    current_user = json.loads(get_jwt_identity())
+    if current_user['ruolo'] != 'dipendente':
+        return jsonify({"error": "Accesso non autorizzato"}), 403
+
+    data = request.get_json()
+    servizio = data.get('servizio')
+    data_servizio = data.get('data')
+    ora = data.get('ora')
+    note = data.get('note')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE appuntamenti
+        SET servizio = ?, data = ?, ora = ?, note = ?
+        WHERE id = ?
+    ''', (servizio, data_servizio, ora, note, id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Prenotazione modificata con successo!"})
+
+@app.route('/cancella_prenotazione/<int:id>', methods=['DELETE'])
+@jwt_required()
+def cancella_prenotazione(id):
+    current_user = json.loads(get_jwt_identity())
+    if current_user['ruolo'] != 'dipendente':
+        return jsonify({"error": "Accesso non autorizzato"}), 403
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM appuntamenti WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Prenotazione cancellata con successo!"})
 
 if __name__ == '__main__':
     app.run(debug=True)
