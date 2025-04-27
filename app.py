@@ -29,6 +29,7 @@ def dashboard_cliente():
 def dashboard_dipendente():
     return render_template('dashboard_dipendente.html')
 
+# Registrazione
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -51,6 +52,7 @@ def register():
 
     return jsonify({"message": "Registrazione completata!"}), 201
 
+# Login
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -74,6 +76,7 @@ def login():
     else:
         return jsonify({"error": "Email o password errati"}), 401
 
+# Prenotazione Cliente
 @app.route('/prenotazione', methods=['POST'])
 @jwt_required()
 def prenotazione():
@@ -105,6 +108,7 @@ def prenotazione():
         print("ERRORE:", e)
         return jsonify({"error": "Errore interno del server"}), 500
 
+# Visualizza prenotazioni del cliente
 @app.route('/prenotazioni_cliente', methods=['GET'])
 @jwt_required()
 def prenotazioni_cliente():
@@ -125,6 +129,7 @@ def prenotazioni_cliente():
     results = [dict(p) for p in prenotazioni]
     return jsonify(results)
 
+# Visualizza prenotazioni per dipendenti
 @app.route('/prenotazioni', methods=['GET'])
 @jwt_required()
 def prenotazioni():
@@ -146,6 +151,7 @@ def prenotazioni():
     results = [dict(p) for p in prenotazioni]
     return jsonify(results)
 
+# Modifica prenotazione (Dipendente)
 @app.route('/modifica_prenotazione/<int:id>', methods=['PUT'])
 @jwt_required()
 def modifica_prenotazione(id):
@@ -171,6 +177,7 @@ def modifica_prenotazione(id):
 
     return jsonify({"message": "Prenotazione modificata con successo!"})
 
+# Cancella prenotazione (Dipendente)
 @app.route('/cancella_prenotazione/<int:id>', methods=['DELETE'])
 @jwt_required()
 def cancella_prenotazione(id):
@@ -181,6 +188,48 @@ def cancella_prenotazione(id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM appuntamenti WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Prenotazione cancellata con successo!"})
+
+# 🔥 Modifica prenotazione cliente
+@app.route('/modifica_prenotazione_cliente/<int:id>', methods=['PUT'])
+@jwt_required()
+def modifica_prenotazione_cliente(id):
+    current_user = json.loads(get_jwt_identity())
+    cliente_id = current_user['id']
+
+    data = request.get_json()
+    nuova_data = data.get('data')
+    nuova_ora = data.get('ora')
+    nuove_note = data.get('note', '')
+
+    if not nuova_data or not nuova_ora:
+        return jsonify({"error": "Dati mancanti"}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE appuntamenti
+        SET data = ?, ora = ?, note = ?
+        WHERE id = ? AND cliente_id = ?
+    ''', (nuova_data, nuova_ora, nuove_note, id, cliente_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Prenotazione modificata con successo!"})
+
+# 🔥 Cancella prenotazione cliente
+@app.route('/cancella_prenotazione_cliente/<int:id>', methods=['DELETE'])
+@jwt_required()
+def cancella_prenotazione_cliente(id):
+    current_user = json.loads(get_jwt_identity())
+    cliente_id = current_user['id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM appuntamenti WHERE id = ? AND cliente_id = ?', (id, cliente_id))
     conn.commit()
     conn.close()
 
