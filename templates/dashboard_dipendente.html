@@ -2,13 +2,83 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Dipendente</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #d8b4f8, #9333ea);
+            min-height: 100vh;
+        }
+
+        h2 {
+            text-align: center;
+            color: #6b21a8;
+            margin-bottom: 30px;
+        }
+
+        #lista-prenotazioni {
+            list-style: none;
+            padding: 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .prenotazione {
+            background: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .prenotazione p {
+            margin: 8px 0;
+            color: #333;
+        }
+
+        .buttons {
+            margin-top: 15px;
+        }
+
+        .modifica-btn, .cancella-btn {
+            padding: 10px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .modifica-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .modifica-btn:hover {
+            background-color: #45a049;
+        }
+
+        .cancella-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .cancella-btn:hover {
+            background-color: #e53935;
+        }
+    </style>
 </head>
 <body>
-    <h2>Lista Prenotazioni clienti</h2>
+
+    <h2>Lista Prenotazioni Clienti</h2>
 
     <ul id="lista-prenotazioni">
-        <!-- Qui veranno caricate le prenotazioni -->
+        <!-- Qui verranno caricate le prenotazioni -->
     </ul>
 
     <script src="/static/dashboard_dipendente.js"></script>
