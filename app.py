@@ -17,14 +17,17 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+# Home page
 @app.route('/')
 def home():
     return render_template('login.html')
 
+# Dashboard Cliente
 @app.route('/dashboard_cliente')
 def dashboard_cliente():
     return render_template('dashboard_cliente.html')
 
+# Dashboard Dipendente
 @app.route('/dashboard_dipendente')
 def dashboard_dipendente():
     return render_template('dashboard_dipendente.html')
@@ -76,39 +79,34 @@ def login():
     else:
         return jsonify({"error": "Email o password errati"}), 401
 
-# Prenotazione Cliente
-@app.route('/prenotazione', methods=['POST'])
+# Prenotazione Cliente (POST su /prenotazioni)
+@app.route('/prenotazioni', methods=['POST'])
 @jwt_required()
-def prenotazione():
+def crea_prenotazione():
     current_user = json.loads(get_jwt_identity())
     cliente_id = current_user['id']
 
-    try:
-        data = request.get_json(force=True)
-        servizio = data.get('servizio')
-        data_servizio = data.get('data')
-        ora = data.get('ora')
-        note = data.get('note', '')
+    data = request.get_json(force=True)
+    servizio = data.get('servizio')
+    data_servizio = data.get('data')
+    ora = data.get('ora')
+    note = data.get('note', '')
 
-        if not servizio or not data_servizio or not ora:
-            return jsonify({"error": "Tutti i campi tranne le note sono obbligatori"}), 400
+    if not servizio or not data_servizio or not ora:
+        return jsonify({"error": "Tutti i campi obbligatori devono essere compilati"}), 400
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO appuntamenti (cliente_id, servizio, data, ora, note)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (cliente_id, servizio, data_servizio, ora, note))
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO appuntamenti (cliente_id, servizio, data, ora, note)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (cliente_id, servizio, data_servizio, ora, note))
+    conn.commit()
+    conn.close()
 
-        return jsonify({"message": "Prenotazione avvenuta con successo!"}), 200
+    return jsonify({"message": "Prenotazione avvenuta con successo!"}), 201
 
-    except Exception as e:
-        print("ERRORE:", e)
-        return jsonify({"error": "Errore interno del server"}), 500
-
-# Visualizza prenotazioni del cliente
+# Visualizza prenotazioni Cliente
 @app.route('/prenotazioni_cliente', methods=['GET'])
 @jwt_required()
 def prenotazioni_cliente():
@@ -129,7 +127,7 @@ def prenotazioni_cliente():
     results = [dict(p) for p in prenotazioni]
     return jsonify(results)
 
-# Visualizza prenotazioni per dipendenti
+# Visualizza prenotazioni Dipendente
 @app.route('/prenotazioni', methods=['GET'])
 @jwt_required()
 def prenotazioni():
@@ -151,7 +149,7 @@ def prenotazioni():
     results = [dict(p) for p in prenotazioni]
     return jsonify(results)
 
-# Modifica prenotazione (Dipendente)
+# Modifica prenotazione Dipendente
 @app.route('/modifica_prenotazione/<int:id>', methods=['PUT'])
 @jwt_required()
 def modifica_prenotazione(id):
@@ -177,7 +175,7 @@ def modifica_prenotazione(id):
 
     return jsonify({"message": "Prenotazione modificata con successo!"})
 
-# Cancella prenotazione (Dipendente)
+# Cancella prenotazione Dipendente
 @app.route('/cancella_prenotazione/<int:id>', methods=['DELETE'])
 @jwt_required()
 def cancella_prenotazione(id):
@@ -193,7 +191,7 @@ def cancella_prenotazione(id):
 
     return jsonify({"message": "Prenotazione cancellata con successo!"})
 
-# 🔥 Modifica prenotazione cliente
+# Modifica prenotazione Cliente (AGGIORNATO)
 @app.route('/modifica_prenotazione_cliente/<int:id>', methods=['PUT'])
 @jwt_required()
 def modifica_prenotazione_cliente(id):
@@ -201,26 +199,27 @@ def modifica_prenotazione_cliente(id):
     cliente_id = current_user['id']
 
     data = request.get_json()
+    nuovo_servizio = data.get('servizio')
     nuova_data = data.get('data')
     nuova_ora = data.get('ora')
     nuove_note = data.get('note', '')
 
-    if not nuova_data or not nuova_ora:
+    if not nuovo_servizio or not nuova_data or not nuova_ora:
         return jsonify({"error": "Dati mancanti"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
         UPDATE appuntamenti
-        SET data = ?, ora = ?, note = ?
+        SET servizio = ?, data = ?, ora = ?, note = ?
         WHERE id = ? AND cliente_id = ?
-    ''', (nuova_data, nuova_ora, nuove_note, id, cliente_id))
+    ''', (nuovo_servizio, nuova_data, nuova_ora, nuove_note, id, cliente_id))
     conn.commit()
     conn.close()
 
     return jsonify({"message": "Prenotazione modificata con successo!"})
 
-# 🔥 Cancella prenotazione cliente
+# Cancella prenotazione Cliente
 @app.route('/cancella_prenotazione_cliente/<int:id>', methods=['DELETE'])
 @jwt_required()
 def cancella_prenotazione_cliente(id):
